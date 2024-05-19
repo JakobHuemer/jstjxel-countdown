@@ -7,7 +7,6 @@ export class Countdown {
     private running: boolean;
     public readonly name: string;
     public listeners: CountdownListener[] = []
-    public onFinish: () => void = () => { };
     private finishTimeout: NodeJS.Timeout | null = null;
 
     constructor(name: string, duration: number) {
@@ -20,17 +19,22 @@ export class Countdown {
 
     // Start the countdown
     resume(): void {
-        if (this.running) {
+        if (this.running || this.timeToGo <= 0) {
             return;
-
         }
+
         this.running = true;
         this.lastStarted = Date.now()
         countdownManager.write();
 
         this.notifyListeners(true, this.timeToGo);
 
-        this.finishTimeout = setTimeout(this.onFinish, this.timeToGo)
+        this.finishTimeout = setTimeout(() => {
+            console.log("ENDING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            this.stop();
+            this.timeToGo = 0;
+            this.listeners.forEach(l => l.finishCallback())
+        }, this.timeToGo * 1000)
     }
 
     // Stop the countdown
@@ -39,10 +43,10 @@ export class Countdown {
             return;
         }
 
+
+
+        this.timeToGo = Math.max(this.getTimeRemaining(), 0);
         this.running = false;
-
-
-        this.timeToGo -= this.getTimeRemaining();
         countdownManager.write();
 
         this.notifyListeners(false, this.timeToGo);
@@ -73,18 +77,24 @@ export class Countdown {
 
     private notifyListeners(newState: boolean, time: number) {
         this.listeners.forEach(l => {
-            console.log("Notifying", l.id, newState, time)
             l.callback(newState, time)
         });
     }
 
     public addListener(l: CountdownListener) {
-        console.log("Adding listener", l.id, l.name);
         this.listeners.push(l);
     }
 
     public removeListener(id: number) {
         this.listeners = this.listeners.filter(e => e.id != id);
+    }
+
+    get isRunning(): boolean {
+        return this.running;
+    }
+
+    get maxTime(): number {
+        return this.duration;
     }
 
     // Static method to create an instance from a JSON object
@@ -94,21 +104,16 @@ export class Countdown {
         }
         if (json.duration == undefined || json.timeToGo == undefined || json.lastStarted == undefined || json.running == undefined || !json.name) {
 
-            console.log(json.duration, json.timeToGo, json.lastStarted, json.running, json.name)
-
             return null;
 
         }
         if (typeof json.duration != "number" || typeof json.timeToGo != "number" || typeof json.lastStarted != "number" || typeof json.running != "boolean" || typeof json.name != "string") {
-            console.log("F")
             return null;
         }
         const countdown = new Countdown(json.name, json.duration);
         countdown.lastStarted = json.lastStarted
         countdown.timeToGo = json.timeToGo
         countdown.running = json.running
-
-        console.log(countdown)
 
 
         return countdown;
@@ -174,7 +179,8 @@ class CountdownManager {
 export interface CountdownListener {
     id: number,
     name?: string,
-    callback: (newState: boolean, time: number) => void
+    callback: (newState: boolean, time: number) => void,
+    finishCallback: () => void,
 }
 
 const countdownManager = new CountdownManager("./assets/countdowns.json");

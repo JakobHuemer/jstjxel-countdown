@@ -15,7 +15,6 @@ export default eventHandler(async event => {
     }
 
     let newState = body.state;
-    console.log(newState)
 
     let cd = CountdownManager.getCountdown(body.name);
 

@@ -15,6 +15,14 @@ export default eventHandler(async event => {
         return { status: 404, msg: `${name} doesn't exist!` }
     }
 
+    if (cd.getTimeRemaining() <= 0) {
+        return {
+            status: 204,
+            msg: "No Content!",
+            description: "Countdown already finished!"
+        }
+    }
+
     setHeaders(event, {
         'Cache-Control': 'no-cache',
         'Content-Type': 'text/event-stream',
@@ -27,9 +35,15 @@ export default eventHandler(async event => {
     let listener: CountdownListener = {
         id: CountdownManager.getNextId(),
         callback: (newState: boolean, time: number): void => {
-            console.log("Sending", newState, time)
             event.node.res.write(`data: ${JSON.stringify({
+                timestamp: Date.now(),
                 newState, time,
+            })}\n\n`)
+        },
+        finishCallback: () => {
+            event.node.res.write(`data: ${JSON.stringify({
+                name: cd.name,
+                ending: "ending"
             })}\n\n`)
         }
     }
@@ -43,6 +57,5 @@ export default eventHandler(async event => {
     })
 
     event._handled = true;
-    console.log("Listening to", name, "with id", listener.id)
 
 })

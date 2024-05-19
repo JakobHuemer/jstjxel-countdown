@@ -1,3 +1,4 @@
+import countdownManager from "~/utils/CountdownManager";
 import CountdownManager from "~/utils/CountdownManager";
 
 export default eventHandler(async event => {
@@ -10,7 +11,20 @@ export default eventHandler(async event => {
         return { status: 400, msg: "Bad Request" }
     }
 
-    console.log(name);
+    let cd = CountdownManager.getCountdown(name);
 
-    return CountdownManager.getCountdown(name)?.getTimeRemaining() ?? { status: 404, msg: `${name} does not exist!` };
+    if (!cd) {
+        return { status: 404, msg: `${name} does not exist!` }
+    }
+
+    return {
+        status: 200,
+        msg: "OK",
+        timestamp: Date.now(),
+        countdown: {
+            running: cd.isRunning,
+            remaining: cd.getTimeRemaining(),
+            duration: cd.maxTime
+        }
+    }
 })
