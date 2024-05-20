@@ -1,0 +1,13 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    color-scheme: dark light;
+
+    font-family: Arial, "Roboto Light", Verdana, sans-serif;
+
+}
+
+body {
+    background: rgb(18, 18, 18);
+}

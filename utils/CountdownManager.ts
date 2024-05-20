@@ -6,7 +6,7 @@ export class Countdown {
     private timeToGo: number; // in seconds
     private running: boolean;
     public readonly name: string;
-    public listeners: CountdownListener[] = []
+    public listeners: CountdownListener[] = [];
     private finishTimeout: NodeJS.Timeout | null = null;
 
     constructor(name: string, duration: number) {
@@ -19,45 +19,63 @@ export class Countdown {
 
     // Start the countdown
     resume(): void {
-        if (this.running || this.timeToGo <= 0) {
+        if ( this.running || this.timeToGo <= 0 ) {
             return;
         }
 
         this.running = true;
-        this.lastStarted = Date.now()
+        this.lastStarted = Date.now();
         countdownManager.write();
 
-        this.notifyListeners(true, this.timeToGo);
+        this.updateListeners(true, this.timeToGo);
 
         this.finishTimeout = setTimeout(() => {
-            console.log("ENDING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            console.log('ENDING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
             this.stop();
             this.timeToGo = 0;
-            this.listeners.forEach(l => l.finishCallback())
-        }, this.timeToGo * 1000)
+            this.notifyEndListeners();
+        }, this.timeToGo * 1000);
     }
 
     // Stop the countdown
     stop(): void {
-        if (!this.running) {
+        if ( !this.running ) {
             return;
         }
-
-
 
         this.timeToGo = Math.max(this.getTimeRemaining(), 0);
         this.running = false;
         countdownManager.write();
 
-        this.notifyListeners(false, this.timeToGo);
-        if (this.finishTimeout) clearTimeout(this.finishTimeout)
+        this.updateListeners(false, this.timeToGo);
+        if ( this.finishTimeout ) clearTimeout(this.finishTimeout);
+    }
+
+    update() {
+        console.log(this.getTimeRemaining())
+        if ( this.getTimeRemaining() <= 0 ) {
+            // this.stop();
+            this.running = false;
+            this.notifyEndListeners();
+            this.timeToGo = 0;
+        }
+        console.log("jiahwidawd")
     }
 
     // Get the time remaining
     getTimeRemaining(): number {
-        if (this.running) {
+
+        if ( this.running ) {
 
             let delta = (Date.now() - this.lastStarted) / 1000;
+
+            if (this.timeToGo - delta <= 0) {
+                this.running = false;
+                this.timeToGo = 0;
+                this.notifyEndListeners();
+                return 0;
+            }
+
             return this.timeToGo - delta;
 
         }
@@ -75,10 +93,17 @@ export class Countdown {
         };
     }
 
-    private notifyListeners(newState: boolean, time: number) {
+    private updateListeners(newState: boolean, time: number) {
         this.listeners.forEach(l => {
-            l.callback(newState, time)
+            l.callback(newState, time);
         });
+    }
+
+    private notifyEndListeners() {
+        this.listeners.forEach(l => {
+            l.finishCallback();
+        });
+
     }
 
     public addListener(l: CountdownListener) {
@@ -99,21 +124,21 @@ export class Countdown {
 
     // Static method to create an instance from a JSON object
     static fromJSON(json: any): Countdown | null {
-        if (!json) {
+        if ( !json ) {
             return null;
         }
-        if (json.duration == undefined || json.timeToGo == undefined || json.lastStarted == undefined || json.running == undefined || !json.name) {
+        if ( json.duration == undefined || json.timeToGo == undefined || json.lastStarted == undefined || json.running == undefined || !json.name ) {
 
             return null;
 
         }
-        if (typeof json.duration != "number" || typeof json.timeToGo != "number" || typeof json.lastStarted != "number" || typeof json.running != "boolean" || typeof json.name != "string") {
+        if ( typeof json.duration != 'number' || typeof json.timeToGo != 'number' || typeof json.lastStarted != 'number' || typeof json.running != 'boolean' || typeof json.name != 'string' ) {
             return null;
         }
         const countdown = new Countdown(json.name, json.duration);
-        countdown.lastStarted = json.lastStarted
-        countdown.timeToGo = json.timeToGo
-        countdown.running = json.running
+        countdown.lastStarted = json.lastStarted;
+        countdown.timeToGo = json.timeToGo;
+        countdown.running = json.running;
 
 
         return countdown;
@@ -126,7 +151,7 @@ class CountdownManager {
     private lastId: number = 999;
 
     constructor(jsonFilePath: string) {
-        this.jsonFilePath = jsonFilePath
+        this.jsonFilePath = jsonFilePath;
         this.read();
     }
 
@@ -134,10 +159,14 @@ class CountdownManager {
         return ++this.lastId;
     }
 
+    get all(): Countdown[] {
+        return this.list;
+    }
+
     create(name: string, duration: number): Countdown | null {
         const cd = new Countdown(name, duration);
-        if (this.getCountdown(name) != undefined) {
-            return null
+        if ( this.getCountdown(name) != undefined ) {
+            return null;
         }
         this.list.push(cd);
         this.write();
@@ -168,9 +197,12 @@ class CountdownManager {
         const json = fs.readFileSync(this.jsonFilePath, 'utf-8');
         const countdowns = JSON.parse(json);
         this.list.length = 0;
-        for (const c of countdowns) {
+        for ( const c of countdowns ) {
             let cd = Countdown.fromJSON(c);
-            if (cd) this.list.push(cd);
+            if ( cd ) {
+                cd.update();
+                this.list.push(cd);
+            }
         }
     }
 
@@ -183,6 +215,6 @@ export interface CountdownListener {
     finishCallback: () => void,
 }
 
-const countdownManager = new CountdownManager("./assets/countdowns.json");
+const countdownManager = new CountdownManager('./assets/countdowns.json');
 
-export default countdownManager
+export default countdownManager;

@@ -1,1 +1,1 @@
-[{"duration":10,"timeToGo":0,"lastStarted":1716115039332,"running":false,"name":"hello"}]
+[{"duration":10000,"timeToGo":7405.471,"lastStarted":1716242879149,"running":true,"name":"loong"},{"duration":1000,"timeToGo":560.8910000000001,"lastStarted":1716242650996,"running":true,"name":"shorter"}]
