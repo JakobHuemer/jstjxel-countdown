@@ -1,4 +1,5 @@
 import fs from 'fs';
+import countdown from 'assets/countdowns.json';
 
 export class Countdown {
     private readonly duration: number;
@@ -194,6 +195,13 @@ class CountdownManager {
     }
 
     read() {
+        console.log(1, fs.readdirSync("./"))
+        console.log(2, fs.readdirSync("./"))
+        console.log(3, fs.readdirSync("./"))
+        console.log(4, fs.readdirSync("./"))
+        console.log(5, fs.readdirSync("./"))
+        console.log(6, fs.readdirSync("./"))
+        console.log(7, fs.readdirSync("./"))
         const json = fs.readFileSync(this.jsonFilePath, 'utf-8');
         const countdowns = JSON.parse(json);
         this.list.length = 0;
@@ -215,6 +223,7 @@ export interface CountdownListener {
     finishCallback: () => void,
 }
 
-const countdownManager = new CountdownManager('./assets/countdowns.json');
+// const countdownManager = new CountdownManager('./assets/countdowns.json');
+const countdownManager = new CountdownManager('./countdowns.json');
 
 export default countdownManager;
