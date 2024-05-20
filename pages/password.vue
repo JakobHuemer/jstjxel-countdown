@@ -17,7 +17,7 @@ function updatePassword() {
 <template>
   <h1>Input Password:</h1>
   <main>
-    <input placeholder="password" :value="password" type="text" name="password" id="password">
+    <input placeholder="password" v-model="password" type="text" name="password" id="password">
     <button @click="updatePassword" type="submit">Submit</button>
   </main>
 </template>

@@ -75,6 +75,10 @@ checkPassword();
 
   <h1>Countdowns</h1>
 
+  <a style="text-align: center; display: block; font-size: 1.2rem" href="/new">Create new Countdown</a>
+  <br>
+  <a style="text-align: center; display: block; font-size: 1.2rem" href="/password">Change Password</a>
+
   <main class="wrapper">
 
     <ul class="all-list">

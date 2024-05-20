@@ -12,10 +12,10 @@ const props = defineProps<{
 function sendState(name: string, state: boolean) {
   $fetch('/api/countdown/edit', {
     method: 'POST',
-    body: {
+    body: JSON.stringify({
       state: state,
       name: name,
-    },
+    }),
     headers: {
       password: nuxtStorage.localStorage.getData(PASSWORD_STRING),
     },

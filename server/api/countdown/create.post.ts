@@ -4,7 +4,7 @@ import checkPassword from "~/utils/auth";
 
 export default eventHandler(async event => {
     let body = await readBody(event);
-    const nameRegex = /^[A-Za-z0-9_-]+$/
+    const nameRegex = /^[A-Za-z0-9_-]{3,16}$/
 
     if (!nameRegex.test(body.name) || typeof body.duration != "number") {
         return { status: 400, msg: "Bad Request" }
